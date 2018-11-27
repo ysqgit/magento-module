@@ -49,6 +49,21 @@ class Uecommerce_Mundipagg_Model_Order_Payment
         $log = new Uecommerce_Mundipagg_Helper_Log(__METHOD__);
         $log->info("#{$order->getIncrementId()} | invoice created {$invoice->getIncrementId()}");
 
+        if ($order->getTotalPaid() < $invoice->getBaseGrandTotal()) {
+
+            $log->info("Order Total Paid (" . intval($order->getTotalPaid()) .
+                ") is less than Invoice Total (" . $invoice->getBaseGrandTotal() . ")");
+
+            $order
+                ->setBaseTotalPaid($invoice->getBaseGrandTotal())
+                ->setTotalPaid($invoice->getBaseGrandTotal())
+                ->save();
+
+            $log->info("Order Total Paid updated: " . $order->getTotalPaid());
+        }
+
+        $order->save();
+
         return $invoice;
     }
 
@@ -67,19 +82,6 @@ class Uecommerce_Mundipagg_Model_Order_Payment
 
             $standard->closeAuthorizationTxns($order);
             $log->info("Authorization transactions closed");
-
-            if ($order->getTotalPaid() < $invoice->getBaseGrandTotal()) {
-
-                $log->info("Order Total Paid (" . intval($order->getTotalPaid()) .
-                    ") is less than Invoice Total (" . $invoice->getBaseGrandTotal() . ")");
-
-                $order
-                    ->setBaseTotalPaid($invoice->getBaseGrandTotal())
-                    ->setTotalPaid($invoice->getBaseGrandTotal())
-                    ->save();
-
-                $log->info("Order Total Paid updated: " . $order->getTotalPaid());
-            }
 
             return $invoice;
         } catch (Exception $e) {
