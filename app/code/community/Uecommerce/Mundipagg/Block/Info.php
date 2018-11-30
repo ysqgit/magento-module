@@ -105,6 +105,12 @@ class Uecommerce_Mundipagg_Block_Info extends Mage_Payment_Block_Info
             "{$methodCode}_" . $new . "credito_parcelamento_{$ccQty}_{$ccPos}"
         );
 
+        if ($installments === null) {
+            $installments = $this->getInfo()->getAdditionalInformation(
+                "{$methodCode}_new_credito_parcelamento_{$ccQty}_{$ccPos}"
+            );
+        }
+
         $installments .= "x";
 
         return $installments;
