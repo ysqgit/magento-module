@@ -2241,6 +2241,14 @@ class Uecommerce_Mundipagg_Model_Standard extends Mage_Payment_Model_Method_Abst
             }
         }
 
+        Mage::dispatchEvent(
+            'uecommerce_mundipagg_add_transaction_data_after',
+            array(
+                'payment'       => $payment,
+                'transaction'   => $transactionAdditionalInfo
+            )
+        );
+
         return $transaction->save();
     }
 
