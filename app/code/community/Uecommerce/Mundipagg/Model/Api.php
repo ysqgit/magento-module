@@ -2711,6 +2711,21 @@ class Uecommerce_Mundipagg_Model_Api extends Uecommerce_Mundipagg_Model_Standard
 
                 return $returnMessage;
                 break;
+            case strtolower(Uecommerce_Mundipagg_Model_Enum_CreditCardTransactionStatusEnum::NOT_FOUND_ACQUIRER):
+                try {
+                    // set flag to prevent send back a cancelation to Mundi via API
+                    $this->setCanceledByNotificationFlag($order, true);
+                    $this->tryCancelOrder($order, "Transaction update received: {$status}");
+                    $returnMessage = "OK | {$returnMessageLabel} | Canceled successfully";
+
+                    $helperLog->info($returnMessage);
+                } catch (Exception $e) {
+                    $returnMessage = "KO | {$returnMessageLabel} | {$e->getMessage()}";
+
+                    $helperLog->error($returnMessage);
+                }
+
+                return $returnMessage;
             // For other status we add comment to history
             default:
                 $returnMessage = "Order #{$order->getIncrementId()} | unexpected transaction status: {$status}";
