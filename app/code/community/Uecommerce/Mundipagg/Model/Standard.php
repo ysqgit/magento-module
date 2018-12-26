@@ -1246,11 +1246,14 @@ class Uecommerce_Mundipagg_Model_Standard extends Mage_Payment_Model_Method_Abst
                     $result = $helper->issetOr($approvalRequest['result'], false);
 
                     if ($result !== false) {
-                        $helperLog->info(
-                            "{$logLabel} | Payment not authorized order will be canceled."
-                        );
+                        $action =
+                            $this->offlineRetryCancelOrSuccessOrder(
+                                $logLabel,
+                                $helperLog
+                            );
+
                         Mage::getSingleton('checkout/session')
-                            ->setApprovalRequestSuccess('cancel');
+                            ->setApprovalRequestSuccess($action);
                     }
                 }
 
@@ -2242,35 +2245,6 @@ class Uecommerce_Mundipagg_Model_Standard extends Mage_Payment_Model_Method_Abst
         }
 
         return $transaction->save();
-    }
-
-    /**
-     * Cancel order or not if is in offline retry time
-     *
-     * @author Ruan Azevedo <razevedo@mundipagg.com>
-     * @since 2016-06-21
-     * @param string $orderIncrementId
-     * @throws Varien_Exception
-     */
-    private function offlineRetryCancelOrSuccessOrder($orderIncrementId)
-    {
-        $offlineRetryIsEnabled = Uecommerce_Mundipagg_Model_Offlineretry::offlineRetryIsEnabled();
-        $helperLog = new Uecommerce_Mundipagg_Helper_Log(__METHOD__);
-        $logLabel = "Order #{$orderIncrementId}";
-
-        if ($offlineRetryIsEnabled) {
-            $api = new Uecommerce_Mundipagg_Model_Api();
-            $message = "{$logLabel} | payment not authorized but order is in offline retry yet, not cancel.";
-            $helperLog->info($message);
-            Mage::getSingleton('checkout/session')->setApprovalRequestSuccess('success');
-        } else {
-            $helperLog->info(
-                "{$logLabel} | Payment not authorized and store don't have offline retry, order will be canceled."
-            );
-            Mage::getSingleton('checkout/session')
-                ->setApprovalRequestSuccess('cancel');
-            return;
-        }
     }
 
     /**
@@ -3378,5 +3352,27 @@ class Uecommerce_Mundipagg_Model_Standard extends Mage_Payment_Model_Method_Abst
             $invoice->setEmailSent(true);
             $invoice->sendEmail();
         }
+    }
+
+    private function offlineRetryCancelOrSuccessOrder($logLabel, $helperLog)
+    {
+        $isOffilineRetryEnabled =
+            Mage::getStoreConfig(
+                'payment/mundipagg_standard/offline_retry_enabled'
+        );
+
+        $logMsg = $logLabel . '| Payment not authorized';
+        $msg = ' . Order will be canceled.';
+
+        $action = 'cancel';
+
+        if ($isOffilineRetryEnabled) {
+            $msg =  ', but offline retry is enabled. Wating for notification post';
+            $action = 'success';
+        }
+
+        $helperLog->info($logMsg . $msg);
+
+        return $action;
     }
 }
