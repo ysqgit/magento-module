@@ -49,14 +49,14 @@ class Uecommerce_Mundipagg_Model_Order_Payment
         $log = new Uecommerce_Mundipagg_Helper_Log(__METHOD__);
         $log->info("#{$order->getIncrementId()} | invoice created {$invoice->getIncrementId()}");
 
-        if ($order->getTotalPaid() < $invoice->getBaseGrandTotal()) {
+        if ($order->getTotalPaid() < $invoice->getGrandTotal()) {
 
-            $log->info("Order Total Paid (" . intval($order->getTotalPaid()) .
-                ") is less than Invoice Total (" . $invoice->getBaseGrandTotal() . ")");
+            $log->info("Order Total Paid (" . floatval($order->getTotalPaid()) .
+                ") is less than Invoice Total (" . $invoice->getGrandTotal() . ")");
 
             $order
-                ->setBaseTotalPaid($invoice->getBaseGrandTotal())
-                ->setTotalPaid($invoice->getBaseGrandTotal())
+                ->setBaseTotalPaid($invoice->getGrandTotal())
+                ->setTotalPaid($invoice->getGrandTotal())
                 ->save();
 
             $log->info("Order Total Paid updated: " . $order->getTotalPaid());
