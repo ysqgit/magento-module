@@ -26,6 +26,7 @@ class Uecommerce_Mundipagg_Model_Api extends Uecommerce_Mundipagg_Model_Standard
         }
 
         $helperLog->info("Trying to create order on Mundipagg. Remaining Tries: $try");
+
         $response = $this->sendJSON($request);
 
         if ($response !== null) {
@@ -315,74 +316,18 @@ class Uecommerce_Mundipagg_Model_Api extends Uecommerce_Mundipagg_Model_Standard
             $creditCardTransactionResultCollection = $helper->issetOr($response['CreditCardTransactionResultCollection']);
             $transactionsQty = count($creditCardTransactionResultCollection);
 
-            // Only 1 transaction
             if (count($creditCardTransactionResultCollection) == 1) {
                 $creditCardTransaction = $creditCardTransactionResultCollection[0];
-                $success = $helper->issetOr($creditCardTransaction['Success'], false);
 
-                $helperLog->info('With Only 1 transaction');
+                return $this->dealWithOneTransaction(
+                    $response,
+                    $creditCardTransaction,
+                    $orderKey,
+                    $orderReference,
+                    $data,
+                    $createDate
+                );
 
-                //and transaction success is true
-                if ($success === true) {
-                    $helperLog->info('With Success true');
-
-//					$trans = $creditCardTransactionResultCollection['CreditCardTransactionResult'];
-                    // We save Card On File
-                    if ($data['customer_id'] != 0 && isset($data['payment'][1]['token']) && $data['payment'][1]['token'] == 'new') {
-                        $expiresAt = date(
-                            "Y-m-t",
-                            mktime(
-                                0,
-                                0,
-                                0,
-                                $data['payment'][1]['ExpMonth'],
-                                1,
-                                $data['payment'][1]['ExpYear']
-                            )
-                        );
-
-                        $cardonfile = Mage::getModel('mundipagg/cardonfile');
-
-                        $cardonfile->setEntityId($data['customer_id']);
-                        $cardonfile->setAddressId($data['address_id']);
-                        $cardonfile->setCcType($data['payment'][1]['CreditCardBrandEnum']);
-                        $cardonfile->setCreditCardMask($creditCardTransaction['CreditCard']['MaskedCreditCardNumber']);
-                        $cardonfile->setExpiresAt($expiresAt);
-                        $cardonfile->setToken($creditCardTransaction['CreditCard']['InstantBuyKey']);
-                        $cardonfile->setActive(1);
-                        $cardonfile->save();
-                    }
-
-                    $result = [
-                        'success'        => true,
-                        'message'        => 1,
-                        'returnMessage'  => urldecode($creditCardTransaction['AcquirerMessage']),
-                        'OrderKey'       => $orderKey,
-                        'OrderReference' => $orderReference,
-                        'isRecurrency'   => $recurrencyModel->recurrencyExists(),
-                        'result'         => $response
-                    ];
-
-                    if (is_null($createDate === false)) {
-                        $result['CreateDate'] = $createDate;
-                    }
-
-                    return $result;
-                } else {
-                    // CreditCardTransactionResult success == false, not authorized
-                    $helperLog->info('With Success false');
-
-                    $result = [
-                        'error'            => 1,
-                        'ErrorCode'        => $creditCardTransaction['AcquirerReturnCode'],
-                        'ErrorDescription' => urldecode($creditCardTransaction['AcquirerMessage']),
-                        'OrderKey'         => $orderKey,
-                        'OrderReference'   => $orderReference,
-                        'result'           => $response
-                    ];
-
-                    return $result;
-                }
             } elseif ($transactionsQty > 1) { // More than 1 transaction
                 $helperLog->info('With more than 1 transactions');
 
@@ -2077,43 +2022,6 @@ class Uecommerce_Mundipagg_Model_Api extends Uecommerce_Mundipagg_Model_Standard
         }
     }
 
-    /**
-     * If the Offline Retry feature is enabled, save order offline retry statements
-     *
-     * @author Ruan Azevedo <razevedo@mundipagg.com>
-     * @deprecated since version 2.9.20
-     * @since 2016-06-23
-     * @param string   $orderIncrementId
-     * @param DateTime $createDate
-     */
-    private function saveOfflineRetryStatements($orderIncrementId, DateTime $createDate)
-    {
-        // is offline retry is enabled, save statements
-        if (Uecommerce_Mundipagg_Model_Offlineretry::offlineRetryIsEnabled()) {
-            $offlineRetryTime = Mage::getStoreConfig('payment/mundipagg_standard/delayed_retry_max_time');
-            $helperLog = new Uecommerce_Mundipagg_Helper_Log(__METHOD__);
-            $offlineRetryLogLabel = "Order #{$orderIncrementId} | offline retry statements";
-            $model = new Uecommerce_Mundipagg_Model_Offlineretry();
-            $offlineRetry = $model->loadByIncrementId($orderIncrementId);
-
-            try {
-                $offlineRetry->setOrderIncrementId($orderIncrementId);
-                $offlineRetry->setCreateDate($createDate->getTimestamp());
-
-                $deadline = new DateTime();
-                $interval = new DateInterval('PT' . $offlineRetryTime . 'M');
-                $deadline->setTimestamp($createDate->getTimestamp());
-                $deadline->add($interval);
-
-                $offlineRetry->setDeadline($deadline->getTimestamp());
-                $offlineRetry->save();
-                $helperLog->info("{$offlineRetryLogLabel} saved successfully.");
-            } catch (Exception $e) {
-                $helperLog->error("{$offlineRetryLogLabel} cannot be saved: {$e}");
-            }
-        }
-    }
-
     public function getLocalTransactionsQty($orderId, $transactionKey)
     {
         $qty = 0;
@@ -2738,5 +2646,118 @@ class Uecommerce_Mundipagg_Model_Api extends Uecommerce_Mundipagg_Model_Standard
         }
 
         return $returnMessage;
+    }
+
+    protected function dealWithOneTransaction($response, $creditCardTransaction, $data)
+    {
+        $helperLog = new Uecommerce_Mundipagg_Helper_Log(__METHOD__);
+
+        $helper = Mage::helper('mundipagg');
+
+        $orderKey = $helper->issetOr($response['OrderResult']['OrderKey']);
+        $orderReference = $helper->issetOr($response['OrderResult']['OrderReference']);
+        $createDate = $helper->issetOr($response['OrderResult']['CreateDate']);
+        $success = $helper->issetOr($creditCardTransaction['Success'], false);
+
+        $transactionStatus =
+            $creditCardTransaction['CreditCardTransactionStatus'];
+
+        $offlineRetryEnabled = Mage::getStoreConfig(
+            'payment/mundipagg_standard/offline_retry_enabled'
+        );
+
+        //and transaction success is true
+        if ($success === true ||
+            strtolower($transactionStatus) == 'witherror' ||
+            $offlineRetryEnabled
+        ) {
+            $helperLog->info('With Success true');
+
+           return $this->dealWithSuccessTransaction(
+               $creditCardTransaction,
+               $data,
+               $orderKey,
+               $orderReference,
+               $response,
+               $createDate
+           );
+
+        } else {
+            // CreditCardTransactionResult success == false, not authorized
+            $helperLog->info('With Success false.');
+
+            $result = [
+                'error'            => 1,
+                'ErrorCode'        => $creditCardTransaction['AcquirerReturnCode'],
+                'ErrorDescription' => urldecode($creditCardTransaction['AcquirerMessage']),
+                'OrderKey'         => $orderKey,
+                'OrderReference'   => $orderReference,
+                'result'           => $response
+            ];
+
+            return $result;
+        }
+    }
+
+    protected function saveCardOnFile($creditCardTransaction, $data)
+    {
+        $expiresAt = date(
+            "Y-m-t",
+            mktime(
+                0,
+                0,
+                0,
+                $data['payment'][1]['ExpMonth'],
+                1,
+                $data['payment'][1]['ExpYear']
+            )
+        );
+
+        $cardonfile = Mage::getModel('mundipagg/cardonfile');
+
+        $cardonfile->setEntityId($data['customer_id']);
+        $cardonfile->setAddressId($data['address_id']);
+        $cardonfile->setCcType($data['payment'][1]['CreditCardBrandEnum']);
+        $cardonfile->setCreditCardMask($creditCardTransaction['CreditCard']['MaskedCreditCardNumber']);
+        $cardonfile->setExpiresAt($expiresAt);
+        $cardonfile->setToken($creditCardTransaction['CreditCard']['InstantBuyKey']);
+        $cardonfile->setActive(1);
+        $cardonfile->save();
+    }
+
+    protected function dealWithSuccessTransaction(
+        $creditCardTransaction,
+        $data,
+        $orderKey,
+        $orderReference,
+        $response,
+        $createDate
+    )
+    {
+        $recurrencyModel = Mage::getModel('mundipagg/recurrency');
+
+        if (
+            $data['customer_id'] != 0 &&
+            isset($data['payment'][1]['token']) &&
+            $data['payment'][1]['token'] == 'new'
+        ) {
+            $this->saveCardOnFile($creditCardTransaction, $data);
+        }
+
+        $result = [
+            'success'        => true,
+            'message'        => 1,
+            'returnMessage'  => urldecode($creditCardTransaction['AcquirerMessage']),
+            'OrderKey'       => $orderKey,
+            'OrderReference' => $orderReference,
+            'isRecurrency'   => $recurrencyModel->recurrencyExists(),
+            'result'         => $response
+        ];
+
+        if (is_null($createDate === false)) {
+            $result['CreateDate'] = $createDate;
+        }
+
+        return $result;
     }
 }

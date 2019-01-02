@@ -54,7 +54,7 @@ class Uecommerce_Mundipagg_Helper_Transaction extends Mage_Core_Helper_Abstract
         $entityId = $order->getEntityId();
 
         $this->validateTransactions($entityId, $transactionKey);
-        $transaction = $this->getTransaction($entityId,$transactionKey);
+        $transaction = $this->getTransaction($entityId, $transactionKey);
 
         $order->setBaseTotalPaid($totalPaid)
             ->setTotalPaid($totalPaid)

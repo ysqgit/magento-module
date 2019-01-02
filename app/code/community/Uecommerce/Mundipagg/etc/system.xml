@@ -563,19 +563,6 @@
                             <show_in_store>0</show_in_store>
                         </offline_retry_enabled>
 
-                        <delayed_retry_max_time translate="label">
-                            <label>Max time to retry in minutes</label>
-                            <frontend_type>text</frontend_type>
-                            <sort_order>29</sort_order>
-                            <depends>
-                                <offline_retry_enabled>1</offline_retry_enabled>
-                            </depends>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>0</show_in_store>
-                            <comment>Max time to wait for an authorization. After this, the order will be cancelled.</comment>
-                        </delayed_retry_max_time>
-
                         <heading_extras translate="label">
                             <label>Extras</label>
                             <frontend_model>adminhtml/system_config_form_field_heading</frontend_model>
