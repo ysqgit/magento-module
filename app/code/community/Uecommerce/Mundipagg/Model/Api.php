@@ -316,7 +316,6 @@ class Uecommerce_Mundipagg_Model_Api extends Uecommerce_Mundipagg_Model_Standard
             $creditCardTransactionResultCollection = $helper->issetOr($response['CreditCardTransactionResultCollection']);
             $transactionsQty = count($creditCardTransactionResultCollection);
 
-
             if (count($creditCardTransactionResultCollection) == 1) {
                 $creditCardTransaction = $creditCardTransactionResultCollection[0];
 
