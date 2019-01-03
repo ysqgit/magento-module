@@ -40,57 +40,68 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
             return;
         }
 
+        self::logByFileInputContents($logDir, $file, $message);
+
+    }
+
+    public static function isLogFileExtensionValid($file)
+    {
+        $validatedFileExtension = pathinfo($file, PATHINFO_EXTENSION);
+        if ($validatedFileExtension && in_array($validatedFileExtension, self::getAllowedFileExtensions())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    protected static function getAllowedFileExtensions()
+    {
+        return ['log', 'txt', 'html', 'csv'];
+    }
+
+    protected static function logByFileInputContents($logDir, $file, $message)
+    {
         try {
-            if (!isset($loggers[$file])) {
-                $logDir  = $logDir ? $logDir : Mage::getBaseDir('var') . DS . 'log';
-                $logFile = $logDir . DS . $file;
+            $logDir  = $logDir ? $logDir : Mage::getBaseDir('var') . DS . 'log';
+            $logFile = $logDir . DS . $file;
 
-                if (!is_dir($logDir)) {
-                    mkdir($logDir);
-                    chmod($logDir, 0750);
-                }
+            if (!is_dir($logDir)) {
+                $dirCreated = mkdir($logDir);
+                chmod($logDir, 0750);
 
-                if (!file_exists($logFile)) {
-                    file_put_contents($logFile, '');
-                    chmod($logFile, 0640);
+                if (!$dirCreated) {
+                    $msg = "Can't create Mundipagg log directory" . $logDir;
+                    Mage::throwException($msg);
                 }
+            }
 
-                $format = '%timestamp% %priorityName% (%priority%): %message%' . PHP_EOL;
-                $formatter = new Zend_Log_Formatter_Simple($format);
-                $writerModel = (string)Mage::getConfig()->getNode('global/log/core/writer_model');
-                if (!Mage::app() || !$writerModel) {
-                    $writer = new Zend_Log_Writer_Stream($logFile);
+            if (!file_exists($logFile)) {
+                $fileCreated = file_put_contents($logFile, '');
+                chmod($logFile, 0640);
+
+                if (!$fileCreated) {
+                    $msg = "Can't create Mundipagg log file: " . $logFile;
+                    Mage::throwException($msg);
                 }
-                else {
-                    $writer = new $writerModel($logFile);
-                }
-                $writer->setFormatter($formatter);
-                $loggers[$file] = new Zend_Log($writer);
             }
 
             if (is_array($message) || is_object($message)) {
                 $message = print_r($message, true);
             }
 
-            $loggers[$file]->log($message, $level);
-        }
-        catch (Exception $e) {
-        }
-    }
+            $putContents =
+                file_put_contents(
+                    $logFile,
+                    $message . PHP_EOL,
+                    FILE_APPEND
+                );
 
-    public static function isLogFileExtensionValid($file)
-    {
-        $result = false;
-        $validatedFileExtension = pathinfo($file, PATHINFO_EXTENSION);
-        if ($validatedFileExtension && in_array($validatedFileExtension, self::getAllowedFileExtensions())) {
-            $result = true;
+            if (!$putContents) {
+                Mage::throwException("Can't put log content into: " . $logFile);
+            }
+
+        } catch (Exception $e) {
+            Mage::log($e->getMessage());
         }
-
-        return $result;
-    }
-
-    protected static function getAllowedFileExtensions()
-    {
-        return ['log', 'txt', 'html', 'csv'];
     }
 }
