@@ -2,7 +2,6 @@
 
 class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
 {
-
     /**
      * @param string $message
      * @param integer $level
@@ -42,7 +41,7 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
 
         $config = "payment/mundipagg_standard/log_by_file_put_contents";
         if (Mage::getStoreConfig($config)) {
-            self::logByFileInputContents($logDir, $file, $message);
+            self::logByFilePutContents($logDir, $file, $message);
             return;
         }
 
@@ -98,7 +97,7 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
         return ['log', 'txt', 'html', 'csv'];
     }
 
-    protected static function logByFileInputContents($logDir, $file, $message)
+    protected function logByFilePutContents($logDir, $file, $message)
     {
         try {
             $logDir  = $logDir ? $logDir : Mage::getBaseDir('var') . DS . 'log';
@@ -132,7 +131,7 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
         }
     }
 
-    protected static function createDirectory($logDir)
+    protected function createDirectory($logDir)
     {
         $dirCreated = mkdir($logDir);
         chmod($logDir, 0750);
@@ -143,12 +142,12 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
         }
     }
 
-    protected static function createFile($logFile)
+    protected function createFile($logFile)
     {
         $fileCreated = file_put_contents($logFile, '');
         chmod($logFile, 0640);
 
-        if (!$fileCreated) {
+        if ($fileCreated === false) {
             $msg = "Can't create Mundipagg log file: " . $logFile;
             Mage::throwException($msg);
         }
