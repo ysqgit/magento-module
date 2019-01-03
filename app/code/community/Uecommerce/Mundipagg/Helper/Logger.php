@@ -131,7 +131,7 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
         }
     }
 
-    protected function createDirectory($logDir)
+    protected static function createDirectory($logDir)
     {
         $dirCreated = mkdir($logDir);
         chmod($logDir, 0750);
@@ -142,7 +142,7 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
         }
     }
 
-    protected function createFile($logFile)
+    protected static function createFile($logFile)
     {
         $fileCreated = file_put_contents($logFile, '');
         chmod($logFile, 0640);
