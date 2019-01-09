@@ -119,13 +119,8 @@ class Uecommerce_Mundipagg_Model_Twocreditcards extends Uecommerce_Mundipagg_Mod
                 2 => $parcelsNumber2
             ]
         );
-        
-        $valueWithInterest1 = $this->getValueWithInterest($cctype1, $value1, $parcelsNumber1);
-        $valueWithInterest2 = $this->getValueWithInterest($cctype2, $value2, $parcelsNumber2);
-        $totalValueWithInterest = ($valueWithInterest1 + $valueWithInterest2) / 100;
 
-        $grandTotal = $info->getQuote()->getGrandTotal();
-        $interest = $totalValueWithInterest - $grandTotal;
+        $interest = $interest1 + $interest2;
 
         if ($interest > 0) {
             $info->setAdditionalInformation('mundipagg_interest_information', array());
