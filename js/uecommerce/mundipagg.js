@@ -855,7 +855,7 @@ function checkInstallments(field, url) {
     var form = $('onestepcheckout-form');
     form = form == null ? $('onestepcheckout-general-form') : form;
 
-    if (form) {
+    if (!form) {
         params = $('co-payment-form').serialize(true);
     } else {
         params = form.serialize(true);

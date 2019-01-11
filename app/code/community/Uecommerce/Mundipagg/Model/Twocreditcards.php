@@ -119,13 +119,8 @@ class Uecommerce_Mundipagg_Model_Twocreditcards extends Uecommerce_Mundipagg_Mod
                 2 => $parcelsNumber2
             ]
         );
-        
-        $valueWithInterest1 = $this->getValueWithInterest($cctype1, $value1, $parcelsNumber1);
-        $valueWithInterest2 = $this->getValueWithInterest($cctype2, $value2, $parcelsNumber2);
-        $totalValueWithInterest = ($valueWithInterest1 + $valueWithInterest2) / 100;
 
-        $grandTotal = $info->getQuote()->getGrandTotal();
-        $interest = $totalValueWithInterest - $grandTotal;
+        $interest = $interest1 + $interest2;
 
         if ($interest > 0) {
             $info->setAdditionalInformation('mundipagg_interest_information', array());
@@ -152,6 +147,50 @@ class Uecommerce_Mundipagg_Model_Twocreditcards extends Uecommerce_Mundipagg_Mod
             }
         }
         return parent::assignData($data);
+    }
+
+    public function validate()
+    {
+        parent::validate();
+
+        $info = $this->getInfoInstance();
+
+        $errorMsg = [];
+
+        $additional = $info->getAdditionalInformation();
+
+        if (
+            isset($additional[$this->_code.'_token_2_1']) &&
+            $additional[$this->_code.'_token_2_1'] != 'new'
+        ) {
+            $value1 = $additional[$this->_code.'_value_2_1'];
+        } else {
+            $value1 = $additional[$this->_code.'_new_value_2_1'];
+        }
+
+        if (
+            isset($additional[$this->_code.'_token_2_2']) &&
+            $additional[$this->_code.'_token_2_2'] != 'new'
+        ) {
+            $value2 = $additional[$this->_code.'_value_2_2'];
+        } else {
+            $value2 = $additional[$this->_code.'_new_value_2_2'];
+        }
+
+        $grandTotal = str_replace(',', '.', $additional['baseGrandTotal']);
+        $sumValues = (str_replace(',', '.', $value1) + str_replace(',', '.', $value2));
+
+        if ($grandTotal != $sumValues) {
+            $errorMsg[] = Mage::helper('payment')
+                ->__('Invalid total order value');
+        }
+
+        if ($errorMsg) {
+            $json = json_encode($errorMsg);
+            Mage::throwException($json);
+        }
+
+        return $this;
     }
 
 
