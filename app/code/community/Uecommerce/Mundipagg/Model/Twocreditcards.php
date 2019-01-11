@@ -159,21 +159,28 @@ class Uecommerce_Mundipagg_Model_Twocreditcards extends Uecommerce_Mundipagg_Mod
 
         $additional = $info->getAdditionalInformation();
 
-        if (isset($additional[$this->_code.'_token_2_1']) && $additional[$this->_code.'_token_2_1'] != 'new') {
+        if (
+            isset($additional[$this->_code.'_token_2_1']) &&
+            $additional[$this->_code.'_token_2_1'] != 'new'
+        ) {
             $value1 = $additional[$this->_code.'_value_2_1'];
         } else {
             $value1 = $additional[$this->_code.'_new_value_2_1'];
         }
 
-        if (isset($additional[$this->_code.'_token_2_2']) && $additional[$this->_code.'_token_2_2'] != 'new') {
+        if (
+            isset($additional[$this->_code.'_token_2_2']) &&
+            $additional[$this->_code.'_token_2_2'] != 'new'
+        ) {
             $value2 = $additional[$this->_code.'_value_2_2'];
         } else {
             $value2 = $additional[$this->_code.'_new_value_2_2'];
         }
 
         $grandTotal = str_replace(',', '.', $additional['baseGrandTotal']);
+        $sumValues = (str_replace(',', '.', $value1) + str_replace(',', '.', $value2));
 
-        if ($grandTotal != (str_replace(',', '.', $value1) + str_replace(',', '.', $value2))) {
+        if ($grandTotal != $sumValues) {
             $errorMsg[] = Mage::helper('payment')
                 ->__('Invalid total order value');
         }
