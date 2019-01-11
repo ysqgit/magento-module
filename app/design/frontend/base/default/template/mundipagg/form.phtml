@@ -129,7 +129,7 @@ if ($recurrent) {
                id="<?php echo 'countccs'; ?>"
                value="<?php echo $countCcs; ?>"/>
 
-        <input type="hidden" id="baseGrandTotal" name="baseGrandTotal" class="mundiBaseGrandTotal"
+        <input type="hidden" id="baseGrandTotal" name="payment[baseGrandTotal]" class="mundiBaseGrandTotal"
                value="<?php echo number_format($baseGrandTotal, "2", ",", ""); ?>"/>
 		<?php if ($isPartial == 'partial'): ?>
                     <input type="hidden" name="partial" id="partial" value="1"/>

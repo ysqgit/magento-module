@@ -42,7 +42,7 @@ $_code = $this->getMethodCode();
 <fieldset class="form-list">
     <ul id="payment_form_<?php echo $_code ?>" style="display:none;">
         <div>
-            <input type="hidden" id="baseGrandTotal" name="baseGrandTotal" value="<?php echo number_format($baseGrandTotal, "2", ",", ""); ?>"/>
+            <input type="hidden" id="baseGrandTotal" name="payment[baseGrandTotal]" value="<?php echo number_format($baseGrandTotal, "2", ",", ""); ?>"/>
         </div>
 <?php
 // START CREDIT CARD PAYMENT METHOD
