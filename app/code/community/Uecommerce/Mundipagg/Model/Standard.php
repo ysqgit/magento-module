@@ -974,6 +974,9 @@ class Uecommerce_Mundipagg_Model_Standard extends Mage_Payment_Model_Method_Abst
 
         $helper = Mage::helper('mundipagg');
         $result = $helper->issetOr($resultPayment['result'], false);
+        $ccResultCollection = $helper->issetOr(
+            $result['CreditCardTransactionResultCollection']
+        );
 
         if ($result === false) {
             return $this->integrationTimeOut($order, $payment);
@@ -982,6 +985,20 @@ class Uecommerce_Mundipagg_Model_Standard extends Mage_Payment_Model_Method_Abst
         // Return error
         if (isset($resultPayment['error'])) {
             return $this->paymentError($payment, $resultPayment);
+        }
+
+        if (is_null($ccResultCollection) === false) {
+
+            $status = [];
+
+            foreach ($ccResultCollection as $collection) {
+                $status[] = $collection['CreditCardTransactionStatus'];
+            }
+
+            $NotAuthorized = in_array('NotAuthorized', $status);
+            if ($this->isOfflineretry() && $NotAuthorized){
+                return $this;
+            }
         }
 
         if (isset($resultPayment['message'])) {
