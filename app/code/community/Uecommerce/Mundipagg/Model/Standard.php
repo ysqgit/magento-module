@@ -988,15 +988,14 @@ class Uecommerce_Mundipagg_Model_Standard extends Mage_Payment_Model_Method_Abst
         }
 
         if (is_null($ccResultCollection) === false) {
-
             $status = [];
 
             foreach ($ccResultCollection as $collection) {
                 $status[] = $collection['CreditCardTransactionStatus'];
             }
 
-            $NotAuthorized = in_array('NotAuthorized', $status);
-            if ($this->isOfflineretry() && $NotAuthorized){
+            $notAuthorized = in_array('NotAuthorized', $status);
+            if ($this->isOfflineretry() && $notAuthorized){
                 return $this;
             }
         }
