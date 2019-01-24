@@ -27,7 +27,7 @@ IMPORTANTE
 Em qualquer procedimento de instalação ou update existem riscos, aconselhamos sempre criar backups de sua loja e efetuar qualquer procedimento em ambiente de desenvolvimento antes, nunca diretamente em produção. Não nos responsabilizamos por eventuais incidentes causados por negligenciar este alerta ou por uso de produtos ou serviços de terceiros.</description>
    <license>MIT</license>
    <license_uri/>
-   <version>2.17.14</version>
+   <version>2.17.15</version>
    <stability>stable</stability>
    <notes>- Create validation to values passed by two card form</notes>
    <authors>
