@@ -974,6 +974,9 @@ class Uecommerce_Mundipagg_Model_Standard extends Mage_Payment_Model_Method_Abst
 
         $helper = Mage::helper('mundipagg');
         $result = $helper->issetOr($resultPayment['result'], false);
+        $ccResultCollection = $helper->issetOr(
+            $result['CreditCardTransactionResultCollection']
+        );
 
         if ($result === false) {
             return $this->integrationTimeOut($order, $payment);
@@ -982,6 +985,19 @@ class Uecommerce_Mundipagg_Model_Standard extends Mage_Payment_Model_Method_Abst
         // Return error
         if (isset($resultPayment['error'])) {
             return $this->paymentError($payment, $resultPayment);
+        }
+
+        if (is_null($ccResultCollection) === false) {
+            $status = [];
+
+            foreach ($ccResultCollection as $collection) {
+                $status[] = $collection['CreditCardTransactionStatus'];
+            }
+
+            $notAuthorized = in_array('NotAuthorized', $status);
+            if ($this->isOfflineretry() && $notAuthorized){
+                return $this;
+            }
         }
 
         if (isset($resultPayment['message'])) {
@@ -3194,9 +3210,30 @@ class Uecommerce_Mundipagg_Model_Standard extends Mage_Payment_Model_Method_Abst
                 $data['TaxDocumentTypeEnum'] = 'CNPJ';
                 $data['TaxDocumentNumber'] = $data['payment'][$i]['TaxDocumentNumber'];
             }
+
+            $data['payment'][$i]['InstallmentCount'] =
+                $this->getInstallmentsNumber(
+                    $postData['payment'],
+                    $method,
+                    $num,
+                    $i
+                );
         }
 
         return $data;
+    }
+
+    private function  getInstallmentsNumber($paymentData, $method, $ccQty, $ccPos)
+    {
+        $realCcPos = $ccQty == 1 ? 1 : $ccPos;
+        $new = $paymentData["{$method}_token_{$ccQty}_{$realCcPos}"] == "new" ? "_new" : "";
+        $index = "{$method}{$new}_credito_parcelamento_{$ccQty}_{$realCcPos}";
+
+        if (!isset($paymentData[$index])) {
+            return 1;
+        }
+
+        return $paymentData[$index];
     }
 
     private function doBoletoPayment($data, $postData, $taxvat)

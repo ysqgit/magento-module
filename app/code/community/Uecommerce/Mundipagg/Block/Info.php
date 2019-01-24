@@ -93,27 +93,23 @@ class Uecommerce_Mundipagg_Block_Info extends Mage_Payment_Block_Info
 
     public function getInstallmentsNumber($ccQty, $ccPos)
     {
-        $methodCode = $this->getInfo()->getAdditionalInformation('method');
+        $realCcPos = $ccQty == 1 ? 1 : $ccPos;
+        $method = $this->getInfo()->getAdditionalInformation('method');
 
-        $new = $this->getInfo()
-            ->getAdditionalInformation(
-                "{$methodCode}_token_{$ccQty}_{$ccPos}"
-            );
-        $new = $new === 'new' ? 'new_' : '';
+        $new =  $this->getInfo()->getAdditionalInformation("{$method}_token_{$ccQty}_{$realCcPos}");
+        $new = $new == "new" ? "_new" : "";
 
-        $installments = $this->getInfo()->getAdditionalInformation(
-            "{$methodCode}_" . $new . "credito_parcelamento_{$ccQty}_{$ccPos}"
-        );
+        $index = "{$method}{$new}_credito_parcelamento_{$ccQty}_{$realCcPos}";
 
-        if ($installments === null) {
-            $installments = $this->getInfo()->getAdditionalInformation(
-                "{$methodCode}_new_credito_parcelamento_{$ccQty}_{$ccPos}"
-            );
+        $installments = $this
+            ->getInfo()
+            ->getAdditionalInformation($index);
+
+        if ($installments == null) {
+            $installments = 1;
         }
 
-        $installments .= "x";
-
-        return $installments;
+        return $installments . 'x';
     }
 
     public function getAuthorizationCode($ccPos)
