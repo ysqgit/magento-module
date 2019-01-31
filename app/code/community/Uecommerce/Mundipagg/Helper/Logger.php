@@ -122,8 +122,16 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
                     FILE_APPEND
                 );
 
+            $errorFilePut = print_r(error_get_last(), true);
+
             if (!$putContents) {
-                Mage::throwException("Can't put log content into: " . $logFile);
+                $msg =
+                    "Can't put log content into: " .
+                    $logFile . ' ' .
+                    $errorFilePut
+                ;
+
+                Mage::throwException($msg);
             }
 
         } catch (Exception $e) {
@@ -134,10 +142,32 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
     protected static function createDirectory($logDir)
     {
         $dirCreated = mkdir($logDir);
-        chmod($logDir, 0750);
+
+        $errorDirCreation = print_r(error_get_last(), true);
 
         if (!$dirCreated) {
-            $msg = "Can't create Mundipagg log directory" . $logDir;
+            $msg =
+                "Can't create Mundipagg log directory" .
+                $logDir . ' ' .
+                'Last PHP error: ' . $errorDirCreation
+            ;
+
+            Mage::throwException($msg);
+        }
+
+        $chmodResult = chmod($logDir, 0750);
+
+        $errorChmod = print_r(error_get_last(), true);
+        $permissions = substr(sprintf('%o', fileperms($logDir)), -4);
+
+        if (!$chmodResult) {
+            $msg =
+                'Failed to set file permissions chmod($logDir, 0750); on: ' .
+                $logDir .
+                ' Dir permissions: ' . $permissions .
+                ' Last PHP error: ' . $errorChmod
+            ;
+
             Mage::throwException($msg);
         }
     }
@@ -145,10 +175,29 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
     protected static function createFile($logFile)
     {
         $fileCreated = file_put_contents($logFile, '');
-        chmod($logFile, 0640);
+        $errorFileCreation = print_r(error_get_last(), true);
 
         if ($fileCreated === false) {
-            $msg = "Can't create Mundipagg log file: " . $logFile;
+            $msg =
+                "Can't create Mundipagg log file: " .
+                $logFile . ' ' .
+                'Last PHP error: ' . $errorFileCreation
+            ;
+            Mage::throwException($msg);
+        }
+
+        $chmodResult = chmod($logFile, 0640);
+        $errorChmod = print_r(error_get_last(), true);
+        $permissions = substr(sprintf('%o', fileperms($logFile)), -4);
+
+        if (!$chmodResult) {
+            $msg =
+                'Failed to set file permissions chmod($logFile, 0640); on: ' .
+                $logFile .
+                ' File permissions: ' . $permissions .
+                ' Last PHP error: ' . $errorChmod
+            ;
+
             Mage::throwException($msg);
         }
     }
