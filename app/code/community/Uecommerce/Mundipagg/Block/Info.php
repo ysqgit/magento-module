@@ -96,8 +96,15 @@ class Uecommerce_Mundipagg_Block_Info extends Mage_Payment_Block_Info
         $realCcPos = $ccQty == 1 ? 1 : $ccPos;
         $method = $this->getInfo()->getAdditionalInformation('method');
 
-        $new =  $this->getInfo()->getAdditionalInformation("{$method}_token_{$ccQty}_{$realCcPos}");
-        $new = $new == "new" ? "_new" : "";
+        $token =  $this->getInfo()->getAdditionalInformation("{$method}_token_{$ccQty}_{$realCcPos}");
+        $new = '';
+
+        if (
+            $token === null ||
+            $token == 'new'
+        ) {
+            $new = '_new';
+        }
 
         $index = "{$method}{$new}_credito_parcelamento_{$ccQty}_{$realCcPos}";
 
