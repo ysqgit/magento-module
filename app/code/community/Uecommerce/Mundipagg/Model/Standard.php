@@ -3226,7 +3226,17 @@ class Uecommerce_Mundipagg_Model_Standard extends Mage_Payment_Model_Method_Abst
     private function  getInstallmentsNumber($paymentData, $method, $ccQty, $ccPos)
     {
         $realCcPos = $ccQty == 1 ? 1 : $ccPos;
-        $new = $paymentData["{$method}_token_{$ccQty}_{$realCcPos}"] == "new" ? "_new" : "";
+
+        $savedCreditCardSelector = $method . '_token_' . $ccQty . '_' . $realCcPos;
+
+        $new = '';
+        if (
+            empty($paymentData[$savedCreditCardSelector]) ||
+            $paymentData[$savedCreditCardSelector] == 'new'
+        ) {
+            $new = '_new';
+        }
+
         $index = "{$method}{$new}_credito_parcelamento_{$ccQty}_{$realCcPos}";
 
         if (!isset($paymentData[$index])) {

@@ -177,7 +177,8 @@ class Uecommerce_Mundipagg_Model_Twocreditcards extends Uecommerce_Mundipagg_Mod
             $value2 = $additional[$this->_code.'_new_value_2_2'];
         }
 
-        $grandTotal = str_replace(',', '.', $additional['baseGrandTotal']);
+        $quote = $this->getQuote();
+        $grandTotal = str_replace(',', '.', $quote->getGrandTotal());
         $sumValues = (str_replace(',', '.', $value1) + str_replace(',', '.', $value2));
 
         if ($grandTotal != $sumValues) {
