@@ -237,8 +237,8 @@ function updateInstallments(ccType, element, total) {
         var url = window['admin_area_url_installments_and_interest'];
     }
 
-    /* Force select */
-    document.getElementById(element.id).selectedIndex = element.value - 1;
+
+    var selectedValue = element.value;
 
     /* Get actual parcel */
     var parcel = element.value;
@@ -322,6 +322,8 @@ function updateInstallments(ccType, element, total) {
                 var data = {};
                 this.loadArea(['totals'], true, data);
             }
+
+            document.getElementById(element.id).selectedIndex = selectedValue;
         }
     });
 }
