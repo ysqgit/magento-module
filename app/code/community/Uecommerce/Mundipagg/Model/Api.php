@@ -322,10 +322,7 @@ class Uecommerce_Mundipagg_Model_Api extends Uecommerce_Mundipagg_Model_Standard
                 return $this->dealWithOneTransaction(
                     $response,
                     $creditCardTransaction,
-                    $orderKey,
-                    $orderReference,
-                    $data,
-                    $createDate
+                    $data
                 );
 
             } elseif ($transactionsQty > 1) { // More than 1 transaction
