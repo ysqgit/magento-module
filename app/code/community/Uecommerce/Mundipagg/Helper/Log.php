@@ -12,6 +12,7 @@ class Uecommerce_Mundipagg_Helper_Log extends Mage_Core_Helper_Abstract
     private $addHostName = false;
     private $logger;
     private $logPath;
+    private $orderId = "";
 
     public function __construct($method = '')
     {
@@ -33,6 +34,11 @@ class Uecommerce_Mundipagg_Helper_Log extends Mage_Core_Helper_Abstract
     public function getModuleLogFilenamePrefix()
     {
         return 'Mundipagg_Integracao_';
+    }
+
+    public function setOrderId($orderId)
+    {
+        $this->orderId = $orderId;
     }
 
     public function setMethod($method)
@@ -92,6 +98,12 @@ class Uecommerce_Mundipagg_Helper_Log extends Mage_Core_Helper_Abstract
         $version = Mage::helper('mundipagg')->getExtensionVersion();
 
         $file = $this->getModuleLogFilenamePrefix() . date('Y-m-d');
+
+        $config = "payment/mundipagg_standard/log_by_file_put_contents";
+        if (Mage::getStoreConfig($config) && !empty($this->orderId)) {
+            $file .= "_" . $this->orderId;
+        }
+
         if ($this->addHostName) {
             $file .= '_' . gethostname();
         }
