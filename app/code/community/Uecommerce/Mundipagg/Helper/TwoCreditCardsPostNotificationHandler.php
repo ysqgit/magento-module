@@ -179,6 +179,11 @@ class Uecommerce_Mundipagg_Helper_TwoCreditCardsPostNotificationHandler extends 
             $this->addOrderHistoryStatusUpdate($order, $cardPrefix);
             $order->save();
 
+            $nsu = $notificationPostData['CreditCardTransaction']['UniqueSequentialNumber'];
+            $order->getPayment()->setAdditionalInformation(
+                $cardPrefix . 'CapturedUniqueSequentialNumber', $nsu
+            );
+
             if (!$this->alreadyUpdated($additionalInformation, $cardPrefix)) {
                 $this->capture($order, $transaction, $cardPrefix);
             }

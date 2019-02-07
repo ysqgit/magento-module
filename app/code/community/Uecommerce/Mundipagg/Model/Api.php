@@ -1543,6 +1543,12 @@ class Uecommerce_Mundipagg_Model_Api extends Uecommerce_Mundipagg_Model_Standard
                 return $twoCreditCardsHelper->processTwoCreditCardsNotificationPost($order, $data);
             }
 
+            if (!empty($transactionData['UniqueSequentialNumber'])) {
+                $payment->setAdditionalInformation(
+                    '1_CapturedUniqueSequentialNumber', $transactionData['UniqueSequentialNumber']
+                );
+            }
+
             // We check if transactionKey exists in database
             $t = $this->getLocalTransactionsQty($order->getId(), $transactionKey);
 
