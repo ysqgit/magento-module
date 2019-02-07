@@ -15,8 +15,8 @@ class Uecommerce_Mundipagg_Helper_Invoice extends Mage_Core_Helper_Abstract
             $invoice = Mage::getModel('sales/service_order', $order)->prepareInvoice();
 
             if (!$invoice->getTotalQty()) {
-                $log->error('Cannot create invoice');
-                Mage::throwException('Cannot create invoice');
+                $log->error('Cannot get invoice total quantity');
+                Mage::throwException('Cannot get invoice total quantity');
             }
 
             //Clear paid amount to prevent duplicated values

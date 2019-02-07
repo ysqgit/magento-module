@@ -154,6 +154,7 @@ class Uecommerce_Mundipagg_Helper_TwoCreditCardsPostNotificationHandler extends 
     )
     {
         $this->log = new Uecommerce_Mundipagg_Helper_Log(__METHOD__);
+        $this->log->setOrderId($order->getIncrementId());
 
         try {
             $this->log->info("Processing two credit cards order " );
@@ -177,6 +178,11 @@ class Uecommerce_Mundipagg_Helper_TwoCreditCardsPostNotificationHandler extends 
 
             $this->addOrderHistoryStatusUpdate($order, $cardPrefix);
             $order->save();
+
+            $nsu = $notificationPostData['CreditCardTransaction']['UniqueSequentialNumber'];
+            $order->getPayment()->setAdditionalInformation(
+                $cardPrefix . 'CapturedUniqueSequentialNumber', $nsu
+            );
 
             if (!$this->alreadyUpdated($additionalInformation, $cardPrefix)) {
                 $this->capture($order, $transaction, $cardPrefix);
@@ -249,7 +255,10 @@ class Uecommerce_Mundipagg_Helper_TwoCreditCardsPostNotificationHandler extends 
     {
         try {
             $amount = $amountInCents * 0.01;
-            $this->createInvoice($order, $amount);
+            $invoiceCreated = $this->createInvoice($order, $amount);
+            if ($invoiceCreated !== true) {
+                Mage::throwException($invoiceCreated);
+            }
 
             $order
                 ->setState(Mage_Sales_Model_Order::STATE_PROCESSING)
