@@ -97,7 +97,7 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
         return ['log', 'txt', 'html', 'csv'];
     }
 
-    protected function logByFilePutContents($logDir, $file, $message)
+    protected static function logByFilePutContents($logDir, $file, $message)
     {
         try {
             $logDir  = $logDir ? $logDir : Mage::getBaseDir('var') . DS . 'log';
@@ -123,13 +123,16 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
                 );
 
             $errorFilePut = print_r(error_get_last(), true);
+            $permissions = substr(sprintf('%o', fileperms($logFile)), -4);
 
             if (!$putContents) {
                 $msg =
                     "Can't put log content into: " .
                     $logFile . ' ' .
-                    $errorFilePut
+                    'Last PHP error: ' . $errorFilePut .
+                    ' File permissions: ' . $permissions
                 ;
+
 
                 Mage::throwException($msg);
             }
@@ -141,6 +144,7 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
 
     protected static function createDirectory($logDir)
     {
+        Mage::log("Creating log directory: " . $logDir);
         $dirCreated = mkdir($logDir);
 
         $errorDirCreation = print_r(error_get_last(), true);
@@ -174,6 +178,7 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
 
     protected static function createFile($logFile)
     {
+        Mage::log("Creating log file: " . $logFile);
         $fileCreated = file_put_contents($logFile, '');
         $errorFileCreation = print_r(error_get_last(), true);
 
