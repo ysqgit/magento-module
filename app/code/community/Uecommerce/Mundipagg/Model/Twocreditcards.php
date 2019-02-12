@@ -183,7 +183,8 @@ class Uecommerce_Mundipagg_Model_Twocreditcards extends Uecommerce_Mundipagg_Mod
 
         if ($grandTotal != $sumValues) {
             $errorMsg[] = Mage::helper('payment')
-                ->__('Invalid total order value');
+                ->__('Invalid total order value (Order amount: ' . $grandTotal
+                    . " - Selected amount: " . $sumValues);
         }
 
         if ($errorMsg) {
