@@ -115,27 +115,33 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
                 $message = print_r($message, true);
             }
 
-            $putContents =
-                file_put_contents(
-                    $logFile,
-                    $message . PHP_EOL,
-                    FILE_APPEND
-                );
-
-            $errorFilePut = print_r(error_get_last(), true);
-            $permissions = substr(sprintf('%o', fileperms($logFile)), -4);
-
-            if (!$putContents) {
+            $handle = fopen($logFile, 'a');
+            if (!$handle) {
+                $errorFilePut = print_r(error_get_last(), true);
                 $msg =
-                    "Can't put log content into: " .
+                    "Can't open file: " .
+                    $logFile . ' ' .
+                    'Last PHP error: ' . $errorFilePut
+                ;
+
+                Mage::throwException($msg);
+            }
+
+            if (fwrite($handle, $message . PHP_EOL) === false) {
+                $errorFilePut = print_r(error_get_last(), true);
+                $permissions = substr(sprintf('%o', fileperms($logFile)), -4);
+
+                $msg =
+                    "Can't write on file: " .
                     $logFile . ' ' .
                     'Last PHP error: ' . $errorFilePut .
                     ' File permissions: ' . $permissions
                 ;
 
-
                 Mage::throwException($msg);
             }
+
+            fclose($handle);
 
         } catch (Exception $e) {
             Mage::log($e->getMessage());
