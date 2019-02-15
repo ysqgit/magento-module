@@ -119,7 +119,7 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
             if (!$handle) {
                 $errorFilePut = print_r(error_get_last(), true);
                 $msg =
-                    "Can't open file: " .
+                    "MP - Can't open file: " .
                     $logFile . ' ' .
                     'Last PHP error: ' . $errorFilePut
                 ;
@@ -132,7 +132,7 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
                 $permissions = substr(sprintf('%o', fileperms($logFile)), -4);
 
                 $msg =
-                    "Can't write on file: " .
+                    "MP - Can't write on file: " .
                     $logFile . ' ' .
                     'Last PHP error: ' . $errorFilePut .
                     ' File permissions: ' . $permissions
@@ -150,14 +150,14 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
 
     protected static function createDirectory($logDir)
     {
-        Mage::log("Creating log directory: " . $logDir);
+        Mage::log("MP - Creating log directory: " . $logDir);
         $dirCreated = mkdir($logDir);
 
         $errorDirCreation = print_r(error_get_last(), true);
 
         if (!$dirCreated) {
             $msg =
-                "Can't create Mundipagg log directory" .
+                "MP - Can't create Mundipagg log directory" .
                 $logDir . ' ' .
                 'Last PHP error: ' . $errorDirCreation
             ;
@@ -172,7 +172,7 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
 
         if (!$chmodResult) {
             $msg =
-                'Failed to set file permissions chmod($logDir, 0750); on: ' .
+                'MP - Failed to set file permissions chmod($logDir, 0750); on: ' .
                 $logDir .
                 ' Dir permissions: ' . $permissions .
                 ' Last PHP error: ' . $errorChmod
@@ -184,13 +184,13 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
 
     protected static function createFile($logFile)
     {
-        Mage::log("Creating log file: " . $logFile);
+        Mage::log("MP - Creating log file: " . $logFile);
         $fileCreated = file_put_contents($logFile, '');
         $errorFileCreation = print_r(error_get_last(), true);
 
         if ($fileCreated === false) {
             $msg =
-                "Can't create Mundipagg log file: " .
+                "MP - Can't create Mundipagg log file: " .
                 $logFile . ' ' .
                 'Last PHP error: ' . $errorFileCreation
             ;
@@ -203,7 +203,7 @@ class Uecommerce_Mundipagg_Helper_Logger extends Mage_Core_Helper_Abstract
 
         if (!$chmodResult) {
             $msg =
-                'Failed to set file permissions chmod($logFile, 0640); on: ' .
+                'MP - Failed to set file permissions chmod($logFile, 0640); on: ' .
                 $logFile .
                 ' File permissions: ' . $permissions .
                 ' Last PHP error: ' . $errorChmod
