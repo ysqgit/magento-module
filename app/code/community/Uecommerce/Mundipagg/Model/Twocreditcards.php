@@ -181,7 +181,7 @@ class Uecommerce_Mundipagg_Model_Twocreditcards extends Uecommerce_Mundipagg_Mod
         $grandTotal = str_replace(',', '.', $quote->getGrandTotal());
         $sumValues = (str_replace(',', '.', $value1) + str_replace(',', '.', $value2));
 
-        if ($grandTotal != $sumValues) {
+        if ($grandTotal != $sumValues && $sumValues > 0) {
             $errorMsg[] = Mage::helper('payment')
                 ->__('Invalid total order value (Order amount: ' . $grandTotal
                     . " - Selected amount: " . $sumValues);
